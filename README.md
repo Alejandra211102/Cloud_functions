@@ -50,26 +50,47 @@ Cloud Function 3: get-qr-list
 | **get-qr-list** | Lista los QRs almacenados por usuario desde Cloud Storage. | [https://us-central1-actividad-cloud-qr.cloudfunctions.net/get-qr-list](https://us-central1-actividad-cloud-qr.cloudfunctions.net/get-qr-list) |
 
 
-🧾 Comandos principales utilizados
+## 🚀 Despliegue de funciones en Google Cloud Functions 
 
-# Inicializar proyecto
-gcloud init
+Ejecuta los siguientes comandos para desplegar cada función en la región `us-central1` usando **Python 3.11**.
 
-# Habilitar servicios
-gcloud services enable cloudfunctions.googleapis.com run.googleapis.com storage.googleapis.com artifactregistry.googleapis.com
+### 1️⃣ Generar código QR
+```bash
+gcloud functions deploy generate-qr \
+  --gen2 \
+  --runtime=python311 \
+  --region=us-central1 \
+  --source=functions/generate-qr \
+  --entry-point=generate_qr \
+  --trigger-http \
+  --allow-unauthenticated
+```
+### 2️⃣ Guardar código QR en Cloud Storage
+```bash
+gcloud functions deploy save-qr \
+  --gen2 \
+  --runtime=python311 \
+  --region=us-central1 \
+  --source=functions/save-qr \
+  --entry-point=save_qr \
+  --trigger-http \
+  --allow-unauthenticated \
+  --set-env-vars=BUCKET_NAME=qr-assets-actividad-cloud-qr
+```
+### 3️⃣ Obtener lista de códigos QR
+```bash
+gcloud functions deploy get-qr-list \
+  --gen2 \
+  --runtime=python311 \
+  --region=us-central1 \
+  --source=functions/get-qr-list \
+  --entry-point=get_qr_list \
+  --trigger-http \
+  --allow-unauthenticated \
+  --set-env-vars=BUCKET_NAME=qr-assets-actividad-cloud-qr
+```
 
-# Crear bucket para almacenamiento
-gsutil mb -l us-central1 gs://qr-assets-actividad-cloud-qr
-
-# Configurar CORS para el bucket
-gsutil cors set cors.json gs://qr-assets-actividad-cloud-qr
-
-# Desplegar funciones
-gcloud functions deploy generate-qr --gen2 --runtime=python311 --region=us-central1 --source=functions/generate-qr --entry-point=generate_qr --trigger-http --allow-unauthenticated
-gcloud functions deploy save-qr --gen2 --runtime=python311 --region=us-central1 --source=functions/save-qr --entry-point=save_qr --trigger-http --allow-unauthenticated --set-env-vars=BUCKET_NAME=qr-assets-actividad-cloud-qr
-gcloud functions deploy get-qr-list --gen2 --runtime=python311 --region=us-central1 --source=functions/get-qr-list --entry-point=get_qr_list --trigger-http --allow-unauthenticated --set-env-vars=BUCKET_NAME=qr-assets-actividad-cloud-qr
-
-✅ Pruebas realizadas
+### ✅ Pruebas realizadas
 
 🧩 Función 1 — generate-qr
 $body = @{ text = "https://davita.com"; as_base64 = $false } | ConvertTo-Json
@@ -87,9 +108,14 @@ Invoke-RestMethod -Method GET -Uri "https://us-central1-actividad-cloud-qr.cloud
 {
   "success": true,
   "items": [
-    {"name": "qr/lenovo/qr_1729362104.png", "url": "https://storage.googleapis.com/qr-assets-actividad-cloud-qr/qr/lenovo/qr_1729362104.png", "size": 1240}
+    {
+      "name": "qr/lenovo/qr_1729362104.png",
+      "url": "https://storage.googleapis.com/qr-assets-actividad-cloud-qr/qr/lenovo/qr_1729362104.png",
+      "size": 1240
+    }
   ]
 }
+
 
 ⚠️ Errores comunes y solución
 | Error                                 | Causa                                    | Solución                                               |
